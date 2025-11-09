@@ -32,9 +32,9 @@ jobs:
         working-directory: site
         run: npm ci
 
-      - name: Build Quartz
+      - name: Build Quartz (via Node)
         working-directory: site
-        run: npx quartz build
+        run: node ./quartz/bootstrap-cli.mjs build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
