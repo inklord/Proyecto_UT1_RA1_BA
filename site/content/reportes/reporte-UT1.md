@@ -54,4 +54,4 @@ Ingresos totales 69.50 €; producto líder: Papeleria.
 - Para Quartz: ejecutar dentro de `site/` o usar `--prefix site`; usar `--port 8081` si 8080 está ocupado.
 
 ## 11) URL de la página (Quartz/Pages)
-https://<TU_USUARIO>.github.io/Proyecto_UT1_RA1_BA
+https://inklord.github.io/Proyecto_UT1_RA1_BA
