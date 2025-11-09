@@ -1,4 +1,25 @@
 # Python
+.venv/
+**/__pycache__/
+*.pyc
+
+# Data & outputs
+project/data/drops/
+project/output/parquet/
+project/output/quality/
+project/output/ut1.db
+project/output/*.pdf
+
+# Node / Quartz
+site/node_modules/
+site/public/
+site/.cache/
+
+# OS / misc
+.DS_Store
+Thumbs.db
+
+# Python
 __pycache__/
 *.pyc
 .venv/
