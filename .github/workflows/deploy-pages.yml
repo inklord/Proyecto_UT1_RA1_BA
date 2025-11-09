@@ -32,6 +32,10 @@ jobs:
         working-directory: site
         run: npm ci
 
+      - name: Ensure exec bit for Quartz CLI
+        working-directory: site
+        run: chmod +x ./quartz/bootstrap-cli.mjs
+
       - name: Build Quartz (via Node)
         working-directory: site
         run: node ./quartz/bootstrap-cli.mjs build
