@@ -44,12 +44,34 @@ df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce").dt.date
 df["unidades"] = pd.to_numeric(df["unidades"], errors="coerce")
 df["precio_unitario"] = df["precio_unitario"].apply(to_float_money)
 
+<<<<<<< HEAD
+# Límites razonables para validación
+MAX_UNIDADES = 100  # máximo 100 unidades por transacción
+MAX_PRECIO = 1000.0  # máximo 1000€ por unidad
+MIN_FECHA = pd.to_datetime("2025-01-01").date()  # no ventas antes de 2025
+MAX_FECHA = datetime.now(timezone.utc).date()  # no ventas futuras
+
 valid = (
+    # Validaciones existentes
+=======
+valid = (
+>>>>>>> 7bdfc871baa9bcef1032f7aef3e635b35571e00b
     df["fecha"].notna()
     & df["unidades"].notna() & (df["unidades"] >= 0)
     & df["precio_unitario"].notna() & (df["precio_unitario"] >= 0)
     & df["id_cliente"].notna() & (df["id_cliente"] != "")
     & df["id_producto"].notna() & (df["id_producto"] != "")
+<<<<<<< HEAD
+    # Nuevas validaciones de rango
+    & (df["unidades"] <= MAX_UNIDADES)  # límite superior de unidades
+    & (df["precio_unitario"] <= MAX_PRECIO)  # límite superior de precio
+    & (df["fecha"] >= MIN_FECHA)  # fecha mínima
+    & (df["fecha"] <= MAX_FECHA)  # no ventas futuras
+    # Validación de formato de IDs
+    & df["id_cliente"].str.match(r'^C\d{3}$').fillna(False)  # formato CXXX
+    & df["id_producto"].str.match(r'^P\d{3}$').fillna(False)  # formato PXXX
+=======
+>>>>>>> 7bdfc871baa9bcef1032f7aef3e635b35571e00b
 )
 
 quarantine = df.loc[~valid].copy()
