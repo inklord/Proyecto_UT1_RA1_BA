@@ -1,135 +1,123 @@
 from pathlib import Path
-<<<<<<< HEAD
-from datetime import datetime, timedelta
+from typing import Optional
 import random
+from datetime import date, timedelta
 
-DATA = Path(__file__).resolve().parents[1] / "data" / "drops"
-DATA.mkdir(parents=True, exist_ok=True)
 
-# Configuración de datos
-clientes = [f"C{str(i).zfill(3)}" for i in range(1, 21)]  # C001 a C020
-productos = {
-    "P001": 9.99,    # Café premium
-    "P002": 15.50,   # Té especial
-    "P003": 12.75,   # Chocolate gourmet
-    "P004": 7.99,    # Galletas artesanales
-    "P005": 22.50,   # Vino tinto reserva
-    "P006": 18.25,   # Aceite de oliva virgen
-    "P007": 5.99,    # Mermelada casera
-    "P008": 8.50,    # Pan artesanal
-    "P009": 13.99,   # Queso curado
-    "P010": 11.25,   # Embutido ibérico
-    "P011": 6.75,    # Frutos secos
-    "P012": 4.99,    # Pasta italiana
-    "P013": 16.50,   # Miel orgánica
-    "P014": 9.25,    # Cereales premium
-    "P015": 14.99,   # Café descafeinado
-}
+def generar_muestra(directorio_drops: Optional[Path] = None, forzar: bool = False, n_filas: int = 10000, n_invalidas: Optional[int] = None) -> Path:
+	"""Crear un archivo CSV de ejemplo en el directorio de 'drops'.
 
-# Generar fechas desde hace 1 mes hasta hoy
-end_date = datetime.now()
-start_date = end_date - timedelta(days=30)
-dates = [(start_date + timedelta(days=x)).strftime("%Y-%m-%d") for x in range(31)]
+	Args:
+		directorio_drops: Ruta opcional al directorio de drops. Si no se proporciona,
+			se usa la carpeta por defecto project/data/drops.
+		forzar: Si es True, sobrescribe el archivo de ejemplo existente. Si es False,
+			no sobrescribe cuando ya existe.
 
-# Generar datos
-rows = ["fecha,id_cliente,id_producto,unidades,precio_unitario"]
-num_transactions = 60  # Aumentamos a 60 transacciones para tener más variedad de errores
+	Returns:
+		Path: ruta al archivo generado (o existente).
+	"""
+	base = Path(__file__).resolve().parents[1]
+	DATA = (directorio_drops or base / "data" / "drops")
+	DATA.mkdir(parents=True, exist_ok=True)
 
-# Lista para almacenar transacciones válidas que usaremos para crear duplicados
-valid_transactions = []
+	# generar filas sintéticas
+	fecha_inicio = date(2025, 1, 1)
+	clientes = [f"C{str(i).zfill(3)}" for i in range(1, 501)]
+	productos = [f"P{str(i).zfill(3)}" for i in range(1, 201)]
 
-for i in range(num_transactions):
-    fecha = random.choice(dates)
-    cliente = random.choice(clientes)
-    producto = random.choice(list(productos.keys()))
-    precio = productos[producto]
-    unidades = random.randint(1, 10)
-    
-    # Generamos diferentes tipos de errores
-    if i < num_transactions - 45:  # Los primeros 15 registros tendrán errores variados
-        error_type = i % 8  # 8 tipos diferentes de errores
-        
-        if error_type == 0:
-            # Valores nulos
-            campo_nulo = random.choice(['fecha', 'id_cliente', 'id_producto', 'unidades', 'precio_unitario'])
-            if campo_nulo == 'fecha':
-                fecha = ""
-            elif campo_nulo == 'id_cliente':
-                cliente = ""
-            elif campo_nulo == 'id_producto':
-                producto = ""
-            elif campo_nulo == 'unidades':
-                unidades = ""
-            else:
-                precio = ""
-                
-        elif error_type == 1:
-            # Fechas mal formateadas
-            fecha = "2025/13/45"  # Fecha inválida
-            
-        elif error_type == 2:
-            # IDs mal formateados
-            cliente = "Cliente123"  # No sigue el formato CXXX
-            
-        elif error_type == 3:
-            # Producto inexistente
-            producto = "P999"
-            
-        elif error_type == 4:
-            # Unidades como texto
-            unidades = "diez"
-            
-        elif error_type == 5:
-            # Precio como texto
-            precio = "quince con cincuenta"
-            
-        elif error_type == 6:
-            # Valores negativos
-            if random.random() < 0.5:
-                unidades = -random.randint(1, 5)
-            else:
-                precio = -random.randint(1, 100)
-                
-        elif error_type == 7:
-            # Valores extremadamente grandes
-            if random.random() < 0.5:
-                unidades = "999999999"
-            else:
-                precio = "999999999.99"
-    
-    else:
-        # Guardamos algunas transacciones válidas para crear duplicados
-        valid_transactions.append(f"{fecha},{cliente},{producto},{unidades},{precio}")
-    
-    row = f"{fecha},{cliente},{producto},{unidades},{precio}"
-    rows.append(row)
+	# Generar nombres propios para los productos (200)
+	_adjetivos = [
+		"Básico", "Premium", "Clásico", "Moderno", "Ligero", "Cómodo", "Compacto", "Elegante",
+		"Resistente", "Económico", "Plus", "Limitado", "Sport", "Casual", "Formal",
+		"Versátil", "Colorido", "Minimal", "Rústico", "Vintage"
+	]
+	_sustantivos = [
+		"Camiseta", "Pantalón", "Zapato", "Sombrero", "Bolso", "Chaqueta", "Calcetín", "Bufanda",
+		"Gorra", "Sudadera", "Vestido", "Falda", "Blusa", "Corbata", "Cinturón", "Guante",
+		"Botín", "Sandalia", "Abrigo", "Chaleco"
+	]
+	producto_nombres = []
+	for idx, pid in enumerate(productos, start=1):
+		adj = _adjetivos[idx % len(_adjetivos)]
+		sus = _sustantivos[idx % len(_sustantivos)]
+		producto_nombres.append(f"{sus} {adj} #{str(idx).zfill(3)}")
 
-# Añadir algunos duplicados exactos
-for _ in range(3):
-    if valid_transactions:
-        rows.append(random.choice(valid_transactions))
+	producto_a_nombre = dict(zip(productos, producto_nombres))
 
-# Añadir algunos duplicados con timestamp diferente (misma fecha, cliente, producto)
-for _ in range(2):
-    if valid_transactions:
-        original = random.choice(valid_transactions)
-        fecha, cliente, producto, _, _ = original.split(',')
-        # Mismo día, cliente y producto pero diferentes unidades/precio
-        rows.append(f"{fecha},{cliente},{producto},{random.randint(1,10)},{random.randint(1,100)}.99")
+	random.seed(42)
+	lineas = ["fecha,id_cliente,id_producto,nombre_producto,unidades,precio_unitario"]
 
-csv = "\n".join(rows)
-=======
-DATA = Path(__file__).resolve().parents[1] / "data" / "drops"
-DATA.mkdir(parents=True, exist_ok=True)
+	# determinar el número de filas inválidas: por defecto = 7% del total
+	if n_invalidas is None:
+		n_invalidas = max(0, int(round(n_filas * 0.07)))
 
-csv = """fecha,id_cliente,id_producto,unidades,precio_unitario
-2025-01-03,C001,P10,2,12.50
-2025-01-04,C002,P10,1,12.50
-2025-01-04,C001,P20,3,8.00
-2025-01-05,C003,P20,1,8.00
-2025-01-05,C003,P20,-1,8.00
-2025-01-06,C004,P99,2,doce
-"""
->>>>>>> 7bdfc871baa9bcef1032f7aef3e635b35571e00b
-(DATA / "ventas_ejemplo.csv").write_text(csv, encoding="utf-8")
-print("Generado:", DATA / "ventas_ejemplo.csv")
+	# generar primero las filas válidas
+	filas_validas = max(0, n_filas - n_invalidas)
+	for i in range(filas_validas):
+		d = fecha_inicio + timedelta(days=(i % 365))
+		cliente = random.choice(clientes)
+		producto = random.choice(productos)
+		nombre_producto = producto_a_nombre.get(producto, "")
+		unidades = random.randint(1, 10)
+		precio = round(random.uniform(1.0, 150.0), 2)  # tope de precio ajustado a 150
+		lineas.append(f"{d.isoformat()},{cliente},{producto},{nombre_producto},{unidades},{precio:.2f}")
+
+	# inyectar varias filas inválidas para probar la cuarentena
+	# tipos: unidades negativas, precio no numérico, cliente faltante, fecha inválida, unidades cero, producto vacío
+	casos_invalidos = [
+		# (fecha, cliente, id_producto, nombre_producto, unidades, precio)
+		(fecha_inicio.isoformat(), "C001", "P001", producto_a_nombre.get("P001", ""), -1, "10.00"),           # unidades negativas
+		("2025-13-01", "C002", "P002", producto_a_nombre.get("P002", ""), 2, "20.00"),                    # fecha inválida
+		(fecha_inicio.isoformat(), "", "P003", producto_a_nombre.get("P003", ""), 3, "30.00"),               # cliente faltante
+		(fecha_inicio.isoformat(), "C004", "", "", 1, "40.00"),                                             # producto faltante
+		(fecha_inicio.isoformat(), "C005", "P005", producto_a_nombre.get("P005", ""), 0, "50.00"),           # unidades cero
+		(fecha_inicio.isoformat(), "C006", "P006", producto_a_nombre.get("P006", ""), 2, "doce"),            # precio no numérico
+		(fecha_inicio.isoformat(), "C007", "P007", producto_a_nombre.get("P007", ""), "tres", "60.00"),    # unidades no numéricas
+		(fecha_inicio.isoformat(), None, "P008", producto_a_nombre.get("P008", ""), 1, "70.00"),               # cliente None
+		(fecha_inicio.isoformat(), "C009", "P009", producto_a_nombre.get("P009", ""), 1, ""),                # precio vacío
+		(fecha_inicio.isoformat(), "C010", "P010", producto_a_nombre.get("P010", ""), -100, "1000.00"),      # unidades muy negativas
+	]
+
+	# repetir casos inválidos hasta alcanzar n_invalidas si hace falta
+	for i in range(n_invalidas):
+		caso = casos_invalidos[i % len(casos_invalidos)]
+		fecha, cli, prod, prod_nombre, unidades, precio = caso
+		# normalizar None a cadena vacía para un CSV realista
+		cli = "" if cli is None else cli
+		prod = "" if prod is None else prod
+		prod_nombre = "" if prod_nombre is None else prod_nombre
+		precio = "" if precio is None else precio
+		lineas.append(f"{fecha},{cli},{prod},{prod_nombre},{unidades},{precio}")
+
+	csv = "\n".join(lineas) + "\n"
+
+	target = DATA / "ventas_ejemplo.csv"
+	if target.exists() and not forzar:
+		return target
+
+	target.write_text(csv, encoding="utf-8")
+	return target
+
+
+
+def generate_sample(drop_dir: Optional[Path] = None, force: bool = False, n_rows: int = 10000, n_invalid: Optional[int] = None) -> Path:
+	"""Wrapper compatible con la firma original en inglés.
+
+	Parámetros compatibles:
+		drop_dir, force, n_rows, n_invalid
+	Se mapean a: directorio_drops, forzar, n_filas, n_invalidas
+	"""
+	return generar_muestra(directorio_drops=drop_dir, forzar=force, n_filas=n_rows, n_invalidas=n_invalid)
+
+
+if __name__ == "__main__":
+	import argparse
+	parser = argparse.ArgumentParser(description="Generar CSV de ejemplo en data/drops")
+	parser.add_argument("--force", action="store_true", dest="forzar", help="Sobrescribir si existe")
+	parser.add_argument("--rows", "-n", type=int, default=10000, dest="rows", help="Número de filas a generar (sin incluir la cabecera)")
+	parser.add_argument("--invalid", "-i", type=int, default=None, dest="invalid", help="Número de filas inválidas a inyectar (si se omite, 7% del total)")
+	parser.add_argument("--no-run", dest="run", action="store_false", help="No ejecutar pipeline después de generar los datos")
+	parser.set_defaults(run=True)
+	args = parser.parse_args()
+	path = generar_muestra(directorio_drops=None, forzar=args.forzar, n_filas=args.rows, n_invalidas=args.invalid)
+	print("Generado:", path)
